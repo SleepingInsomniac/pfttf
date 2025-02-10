@@ -1,0 +1,27 @@
+# NOTICE: This lockfile contains some overrides from shard.override.yml
+version: 2.0
+shards:
+  dot_display:
+    git: https://github.com/sleepinginsomniac/dot_display.git
+    version: 0.1.0+git.commit.58d7d2487bc1ef98d046f75492b0770506d99843
+
+  pf2d: # Overridden
+    path: ../pf2d
+    version: 0.1.0+git.commit.4b6e57cb9b01b2a824ec12ae984d3cb2c77d98be
+
+  pf3d:
+    git: https://github.com/sleepinginsomniac/pf3d.git
+    version: 0.1.1
+
+  pixelfaucet:
+    path: ../pixelfaucet
+    version: 0.0.8
+
+  pixelfont:
+    git: https://github.com/sleepinginsomniac/pixelfont.git
+    version: 1.1.1+git.commit.cb62293136a024e9ba562b945278b5aa9739964f
+
+  sdl:
+    git: https://github.com/sleepinginsomniac/sdl.cr.git
+    version: 0.1.0
+

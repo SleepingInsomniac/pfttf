@@ -1,0 +1,17 @@
+name: pfttf
+version: 0.1.0
+
+authors:
+  - Alex Clink <alexclink@gmail.com>
+
+targets:
+  pfttf:
+    main: src/pfttf.cr
+
+crystal: '>= 1.14.0'
+
+license: MIT
+
+development_dependencies:
+  pixelfaucet:
+    path: ../pixelfaucet
