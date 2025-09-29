@@ -44,6 +44,11 @@ module PFTTF
           @io.read_bytes(UInt32, ByteOrder),
         )
       end
+
+      Log.debug { "Tables:" }
+      @tables.each do |tag, table|
+        Log.debug { "  #{tag}" }
+      end
     end
 
     # 16-bit signed fraction
@@ -76,11 +81,11 @@ module PFTTF
     # 'head' table
     getter head : Tables::Head do
       table = if t = @tables["head"]?
-                puts "Reading head"
+                Log.debug { "Reading head" }
                 @bitmap_only = false
                 t
               else
-                puts "Reading bhed"
+                Log.debug { "Reading bhed" }
                 @bitmap_only = true
                 @tables["bhed"]
               end
@@ -105,7 +110,7 @@ module PFTTF
         LocaIndexFormat.new(@io.read_bytes(Int16, ByteOrder)),
         @io.read_bytes(Int16, ByteOrder),
       )
-      puts h
+      Log.debug { h }
       h
     end
 
@@ -121,11 +126,11 @@ module PFTTF
 
     # Location 'loca' table - Contains the offset for the glyph by cmap glph index
     getter loca : Array(UInt32) do
-      puts "Reading loca"
+      Log.debug { "Reading loca" }
       num_glyphs = maxp.num_glyphs
-      puts " ↳ glyphs: #{num_glyphs}"
+      Log.debug { " ↳ glyphs: #{num_glyphs}" }
       index_to_loc_format = head.index_to_loc_format
-      puts " ↳ format: #{index_to_loc_format}"
+      Log.debug { " ↳ format: #{index_to_loc_format}" }
 
       table = @tables["loca"]
       @io.seek(table.offset)
@@ -142,7 +147,7 @@ module PFTTF
 
     # 'maxp' table - contains info about max memory requirements
     getter maxp : Tables::MaxP do
-      puts "Reading maxp"
+      Log.debug { "Reading maxp" }
       table = @tables["maxp"]
       @io.seek(table.offset)
 
@@ -167,7 +172,7 @@ module PFTTF
 
     # Horizontal head
     getter hhea : Tables::Hhea do
-      puts "Reading hhea"
+      Log.debug { "Reading hhea" }
       table = @tables["hhea"]
       @io.seek(table.offset)
       Tables::Hhea.new(
@@ -193,7 +198,7 @@ module PFTTF
 
     # Herizontal metrics
     getter hmtx : Tables::Hmtx do
-      puts "Reading hmtx"
+      Log.debug { "Reading hmtx" }
       num_glyphs = maxp.num_glyphs
       num_of_long_hor_metrics = hhea.num_of_long_hor_metrics
       table = @tables["hmtx"]
@@ -234,15 +239,15 @@ module PFTTF
 
       return @glyphs[offset] if @glyphs[offset]?
       puts_padding = "  " * depth
-      puts puts_padding + "Reading Glyph at offset: #{offset.to_s(16)}"
+      Log.debug { puts_padding + "Reading Glyph at offset: #{offset.to_s(16)}" }
 
       @io.seek(offset)
 
       num_contours = @io.read_bytes(Int16, ByteOrder)
       if num_contours == -1
-        puts puts_padding + " ↳ Compound Glyph"
+        Log.debug { puts_padding + " ↳ Compound Glyph" }
       else
-        puts puts_padding + " ↳ Contours: #{num_contours}"
+        Log.debug { puts_padding + " ↳ Contours: #{num_contours}" }
       end
 
       x_min = @io.read_bytes(Int16, ByteOrder)
@@ -250,19 +255,19 @@ module PFTTF
       x_max = @io.read_bytes(Int16, ByteOrder)
       y_max = @io.read_bytes(Int16, ByteOrder)
 
-      puts puts_padding + " ↳ min (#{x_min}, #{y_min}), max (#{x_max}, #{y_max})"
+      Log.debug { puts_padding + " ↳ min (#{x_min}, #{y_min}), max (#{x_max}, #{y_max})" }
 
       if num_contours < 0
         compound_glyph = Glyph.new(x_min, y_min, x_max, y_max, Array(Array(Tuple(PointFlag, Int32, Int32))).new(0))
         has_instructions = false
 
         loop do
-          puts puts_padding + " -> Glyph Component:"
+          Log.debug { puts_padding + " -> Glyph Component:" }
           glyph_flags = GlyphFlags.new(@io.read_bytes(UInt16, ByteOrder))
           has_instructions ||= glyph_flags.we_have_instructions?
-          puts puts_padding + " ↳ Flags: #{glyph_flags}"
+          Log.debug { puts_padding + " ↳ Flags: #{glyph_flags}" }
           glyph_index = @io.read_bytes(UInt16, ByteOrder)
-          puts puts_padding + " ↳ Index: #{glyph_index}"
+          Log.debug { puts_padding + " ↳ Index: #{glyph_index}" }
           position = {0_i16, 0_i16}
           relative_point : Tuple(UInt16, UInt16)? = nil
 
@@ -298,9 +303,9 @@ module PFTTF
 
           affine = {a, b, c, d}
 
-          puts puts_padding + " ↳ Position: #{position}"
-          puts puts_padding + " ↳ Relative Point: #{relative_point}"
-          puts puts_padding + " ↳ Affine: #{affine}"
+          Log.debug { puts_padding + " ↳ Position: #{position}" }
+          Log.debug { puts_padding + " ↳ Relative Point: #{relative_point}" }
+          Log.debug { puts_padding + " ↳ Affine: #{affine}" }
 
           pos = @io.pos
           glyph_component = glyph_at_offset(loca[glyph_index]? || 0u32, depth + 1)
@@ -313,7 +318,7 @@ module PFTTF
 
         if has_instructions
           number_of_instructions = @io.read_bytes(UInt16, ByteOrder)
-          puts puts_padding + " ↳ #{number_of_instructions} Instructions"
+          Log.debug { puts_padding + " ↳ #{number_of_instructions} Instructions" }
           instructions = Array(UInt8).new(number_of_instructions) { @io.read_bytes(UInt8, ByteOrder) }
         end
 
@@ -325,7 +330,7 @@ module PFTTF
 
         num_points = end_points.last + 1 # the last endpoint index must be the number of points
 
-        puts puts_padding + " ↳ Points: #{num_points}"
+        Log.debug { puts_padding + " ↳ Points: #{num_points}" }
         flags = Array(PointFlag).new(num_points)
         x_values = Array(Int32).new(num_points)
         y_values = Array(Int32).new(num_points)

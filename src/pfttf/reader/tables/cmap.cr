@@ -25,12 +25,12 @@ module PFTTF
           end
 
           def [](code_point)
-            # puts "Searching code point: #{code_point.to_s(16)}"
+            Log.trace { "Searching code point: #{code_point.to_s(16)}" }
             if index = @ranges.index { |code_range| code_range.range.covers?(code_point) }
               code_range = @ranges[index]
 
               if code_range.id_range_offset == 0
-                # puts " ↳ code_range.id_range_offset == 0"
+                Log.trace { " ↳ code_range.id_range_offset == 0" }
                 code_point &+ code_range.id_delta
               else
                 gi_index = code_range.id_range_offset // 2 +
@@ -48,7 +48,7 @@ module PFTTF
         end
 
         def self.from_io(io : IO, table_header : TableHeader)
-          puts "Reading cmaps"
+          Log.debug { "Reading cmaps" }
           io.seek(table_header.offset)
           version = io.read_bytes(UInt16, ByteOrder)
           num_tables = io.read_bytes(UInt16, ByteOrder)
@@ -56,7 +56,7 @@ module PFTTF
             platform = Platform.new(io.read_bytes(UInt16, ByteOrder))
             platform_specific_id = io.read_bytes(UInt16, ByteOrder)
             offset = io.read_bytes(UInt32, ByteOrder) + table_header.offset
-            puts " ↳ #{platform}, #{platform_specific_id}, @#{offset.to_s(16)}"
+            Log.debug { " ↳ #{platform}, #{platform_specific_id}, @#{offset.to_s(16)}" }
             SubtableHeader.new(platform, platform_specific_id, offset)
           end
 
@@ -74,6 +74,7 @@ module PFTTF
 
         def [](platform : Platform, platform_specific_id : UInt16? = nil)
           filtered_headers = subtable_headers.select { |h| h.platform == platform }
+          raise "#{platform} not supported in font file!" if filtered_headers.empty?
           subtable_header = case platform
                             when Platform::Unicode
                               if psid = platform_specific_id
@@ -101,25 +102,25 @@ module PFTTF
         end
 
         def parse_subtable_4(subtable_header)
-          puts "Parsing cmap subtable format 4"
+          Log.debug { "Parsing cmap subtable format 4" }
           length = @io.read_bytes(UInt16, ByteOrder) # Length in bytes
-          puts " ↳ length: #{length}"
+          Log.debug { " ↳ length: #{length}" }
           _language = @io.read_bytes(UInt16, ByteOrder) # Unused unless macintosh format (0 = adaptive)
           seg_count = @io.read_bytes(UInt16, ByteOrder) // 2
-          puts " ↳ seg_count: #{seg_count}"
+          Log.debug { " ↳ seg_count: #{seg_count}" }
           search_range = @io.read_bytes(UInt16, ByteOrder)
-          # puts " ↳ search_range: #{search_range}"
+          Log.debug { " ↳ search_range: #{search_range}" }
           entry_selector = @io.read_bytes(UInt16, ByteOrder)
-          # puts " ↳ entry_selector: #{entry_selector}"
+          Log.debug { " ↳ entry_selector: #{entry_selector}" }
           range_shift = @io.read_bytes(UInt16, ByteOrder)
-          # puts " ↳ range_shift: #{range_shift}"
+          Log.debug { " ↳ range_shift: #{range_shift}" }
           end_codes = Array(UInt16).new(seg_count) { @io.read_bytes(UInt16, ByteOrder) }
           @io.read_bytes(UInt16, ByteOrder) # reserved pad
           start_codes = Array(UInt16).new(seg_count) { @io.read_bytes(UInt16, ByteOrder) }
           id_deltas = Array(Int16).new(seg_count) { @io.read_bytes(Int16, ByteOrder) }
           id_range_offsets = Array(UInt16).new(seg_count) { @io.read_bytes(UInt16, ByteOrder) }
           glyph_index_size = (length - (@io.pos - subtable_header.offset)) // 2
-          puts " ↳ glyph_index_size: #{glyph_index_size}"
+          Log.debug { " ↳ glyph_index_size: #{glyph_index_size}" }
           glyph_index_array = Array(UInt16).new(glyph_index_size) { @io.read_bytes(UInt16, ByteOrder) }
 
           subtable = Subtable.new(glyph_index_array)

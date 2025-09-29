@@ -1,5 +1,5 @@
 name: pfttf
-version: 0.1.0
+version: 0.1.1
 
 authors:
   - Alex Clink <alexclink@gmail.com>
@@ -14,4 +14,5 @@ license: MIT
 
 development_dependencies:
   pixelfaucet:
-    path: ../pixelfaucet
+    github: SleepingInsomniac/pixelfaucet
+    version: ~> 0.0.10

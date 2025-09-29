@@ -1,7 +1,8 @@
-require "pixelfaucet/game"
+require "log"
 
 module PFTTF
-  VERSION = "0.1.0"
+  VERSION = {% `shards version`.chomp.stringify %}
+  Log = ::Log.for(self)
 end
 
 require "./pfttf/enums"

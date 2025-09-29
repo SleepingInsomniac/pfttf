@@ -6,13 +6,15 @@ module PFTTF
     getter y_max : Int16
 
     getter contours : Array(Array(Tuple(PointFlag, Int32, Int32)))
+
+    # Translation x, y | Relative Positioning (parent point index, child point index) | Affine transform (a, b, c, d) | Glyph
     getter components = Array(Tuple(Tuple(Int16, Int16), Tuple(UInt16, UInt16)?, Tuple(Float64, Float64, Float64, Float64), Glyph)).new
 
     def initialize(@x_min, @y_min, @x_max, @y_max, @contours)
       insert_inferred_points
     end
 
-    # Inserts points where they are ommitted for spac saving (able to be inferred)
+    # Inserts points where they are omitted for space saving (able to be inferred)
     private def insert_inferred_points
       @contours.map! do |contour|
         num_insertions = count_inferred_points(contour)

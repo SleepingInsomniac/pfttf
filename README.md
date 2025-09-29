@@ -1,6 +1,6 @@
 # pfttf
 
-TTF font parsing for [pixelfaucet ](https://github.com/sleepinginsomniac/pixelfaucet)
+TTF font parsing library
 
 ## Contributing
 
@@ -12,4 +12,4 @@ TTF font parsing for [pixelfaucet ](https://github.com/sleepinginsomniac/pixelfa
 
 ## Contributors
 
-- [Alex Clink](https://github.com/your-github-user) - creator and maintainer
+- [Alex Clink](https://github.com/sleepinginsomniac) - creator and maintainer
